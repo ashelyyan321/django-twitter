@@ -27,6 +27,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
 class AccountViewSet(viewsets.ViewSet):
     serializer_class = SignupSerializer
 
