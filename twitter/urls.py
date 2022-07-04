@@ -16,17 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
-from accounts.api.views import UserViewSet, AccountViewSet
 
-import debug_toolbar
+from accounts.api.views import UserViewSet, AccountViewSet
 
 router = routers.DefaultRouter()
 router.register(r'api/users', UserViewSet)
 router.register(r'api/accounts', AccountViewSet, basename='accounts')
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('__debug__/', include(debug_toolbar.urls)),
 ]
