@@ -1,0 +1,15 @@
+from rest_framework.permissions import BasePermission
+
+
+class IsObjectOwner(BasePermission):
+
+    message = "You do not have permission to access this object"
+
+    '''post,get, for detail checking'''
+    def has_permission(self, request, view):
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.user
+
+
