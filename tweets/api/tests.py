@@ -29,6 +29,7 @@ class TweetApiTests(TestCase):
     def test_list_api(self):
         # 必须带 user_id
         response = self.anonymous_client.get(TWEET_LIST_API)
+        print(response.data, response.status_code)
         self.assertEqual(response.status_code, 400)
 
         # 正常 request
@@ -44,7 +45,7 @@ class TweetApiTests(TestCase):
     def test_create_api(self):
         # 必须登录
         response = self.anonymous_client.post(TWEET_CREATE_API)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
 
         # 必须带 content
         response = self.user1_client.post(TWEET_CREATE_API)
@@ -71,6 +72,7 @@ class TweetApiTests(TestCase):
         # tweet with id=-1 does not exist
         url = TWEET_RETRIEVE_API.format(-1)
         response = self.anonymous_client.get(url)
+        print(response.data, response.status_code)
         self.assertEqual(response.status_code, 404)
 
         # 获取某个 tweet 的时候会一起把 comments 也拿下
