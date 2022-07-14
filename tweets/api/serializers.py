@@ -26,7 +26,7 @@ class TweetCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tweet
-        fields = ('content',)
+        fields = ('content', 'user')
 
     def create(self, validated_data):
         user = self.context['request'].user

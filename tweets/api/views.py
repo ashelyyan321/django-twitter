@@ -18,7 +18,7 @@ class TweetViewSet(viewsets.GenericViewSet):
     def get_permissions(self):
         if self.action == ['list', 'retrieve']:
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     @required_params(params=['user_id'])
     def list(self, request, *args, **kwargs):
