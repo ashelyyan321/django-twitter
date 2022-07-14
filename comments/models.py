@@ -4,6 +4,7 @@ from tweets.models import Tweet
 from likes.models import Like
 from django.contrib.contenttypes.models import ContentType
 
+
 class Comment(models.Model):
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     tweet = models.ForeignKey(Tweet, null=True, on_delete=models.SET_NULL)
