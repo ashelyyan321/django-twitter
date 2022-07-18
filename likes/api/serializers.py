@@ -52,7 +52,6 @@ class LikeSerializerForCreate(BaseLikeSerializerForCreateAndCancel):
         )
 
 
-
 class LikeSerializerForCancel(BaseLikeSerializerForCreateAndCancel):
 
     def cancel(self):
