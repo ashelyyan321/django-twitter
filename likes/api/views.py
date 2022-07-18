@@ -9,6 +9,7 @@ from likes.api.serializers import (
     LikeSerializer,
     LikeSerializerForCancel,
 )
+from inbox.services import NotificationService
 
 
 class LikeViewSet(viewsets.GenericViewSet):
@@ -27,7 +28,9 @@ class LikeViewSet(viewsets.GenericViewSet):
                 'message': 'Please check input',
                 'errors': serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
-        instance = serializer.save()
+        instance, created = serializer.get_or_create()
+        if created:
+            NotificationService.send_like_notification(instance)
         return Response(
             LikeSerializer(instance).data,
             status=status.HTTP_201_CREATED,
