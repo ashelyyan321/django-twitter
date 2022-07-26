@@ -4,8 +4,10 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
 
+
 class FollowerSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='from_user')
+    created_at = serializers.DateTimeField()
 
     class Meta:
         model = Friendship
@@ -14,6 +16,7 @@ class FollowerSerializer(serializers.ModelSerializer):
 
 class FollowingSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='to_user')
+    created_at = serializers.DateTimeField()
 
     class Meta:
         model = Friendship
@@ -36,11 +39,13 @@ class FriendshipSerializerForCreate(serializers.ModelSerializer):
         if not User.objects.filter(id=attrs['to_user_id']).exists():
             raise ValidationError({
                 'message': 'You cannot follow non user',
-            })
+             })
         return attrs
 
     def create(self, validated_data):
+        from_user_id = validated_data['from_user_id']
+        to_user_id = validated_data['to_user_id']
         return Friendship.objects.create(
-            from_user_id=validated_data['from_user_id'],
-            to_user_id=validated_data['to_user_id'],
+            from_user_id=from_user_id,
+            to_user_id=to_user_id,
         )
