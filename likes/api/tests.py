@@ -112,7 +112,7 @@ class LikeApiTests(TestCase):
 
         # dongxie has not liked before
         response = self.dongxie_client.post(LIKE_CANCEL_URL, like_comment_data)
-        print(response.data)
+        #print(response.data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(tweet.like_set.count(), 1)
         self.assertEqual(comment.like_set.count(), 1)
