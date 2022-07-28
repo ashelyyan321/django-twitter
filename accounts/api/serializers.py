@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers
-from rest_framework import exceptions
+from rest_framework import serializers, exceptions
 from accounts.models import UserProfile
 
 
@@ -14,23 +13,29 @@ class UserSerializerWithProfile(UserSerializer):
    nickname = serializers.CharField(source='profile.nickname')
    avatar_url = serializers.SerializerMethodField()
 
-   def get_avatal_url(self, obj):
+   def get_avatar_url(self, obj):
        if obj.profile.avatar:
            return obj.profile.avatar.url
        return None
 
    class Meta:
        model = User
-       fields = ('id', 'username', 'nickname', 'avatal_url')
+       fields = ('id', 'username', 'nickname', 'avatar_url')
 
 
-class UserSerializerForTweet(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username']
+class UserSerializerForTweet(UserSerializerWithProfile):
+   pass
 
 
-class UserSerializerForFriendship(UserSerializerForTweet):
+class UserSerializerForFriendship(UserSerializerWithProfile):
+    pass
+
+
+class UserSerializerForComment(UserSerializerWithProfile):
+    pass
+
+
+class UserSerializerForLike(UserSerializerWithProfile):
     pass
 
 
