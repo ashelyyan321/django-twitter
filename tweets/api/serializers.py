@@ -43,7 +43,7 @@ class TweetSerializer(serializers.ModelSerializer):
     def get_photo_urls(self, obj):
         photo_urls = []
         for photo in obj.tweetphoto_set.all().order_by('order'):
-            photo_urls.append(photo.file_url)
+            photo_urls.append(photo.file.url)
         return photo_urls
 
 

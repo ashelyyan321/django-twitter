@@ -151,14 +151,14 @@ class CommentApiTests(TestCase):
         self.create_comment(self.linghu, tweet)
         response = self.dongxie_client.get(TWEET_LIST_API, {'user_id': self.linghu.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['tweets'][0]['comments_count'], 1)
+        self.assertEqual(response.data['results'][0]['comments_count'], 1)
 
         # test newsfeeds list api
         self.create_comment(self.dongxie, tweet)
         self.create_newsfeed(self.dongxie, tweet)
         response = self.dongxie_client.get(NEWSFEED_LIST_API)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['newsfeeds'][0]['tweet']['comments_count'], 2)
+        self.assertEqual(response.data['results'][0]['tweet']['comments_count'], 2)
 
 
 
