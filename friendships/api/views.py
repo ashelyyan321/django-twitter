@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from friendships.models import Friendship
+from friendships.services import FriendshipService
 from rest_framework.response import Response
 from friendships.api.serializers import (
     FollowingSerializer,
@@ -45,6 +46,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'errors': serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
         instance = serializer.save()
+        FriendshipService.invalidate_following_cache(request.user.id)
         #NewsFeedService.inject_newsFeeds(request.user.id, pk)
         return Response(
             FollowingSerializer(instance, context={'request': request}).data,
@@ -64,6 +66,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             from_user=request.user,
             to_user=pk,
         ).delete()
+        FriendshipService.invalidate_following_cache(request.user.id)
         #NewsFeedService.remove_newsFeeds(request.user.id, pk)(push model)
         return Response({'success': True, 'deleted': deleted})
 

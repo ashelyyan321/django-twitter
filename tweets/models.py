@@ -1,3 +1,4 @@
+from utils.memcached_helper import MemcachedHelper
 from django.db import models
 from django.contrib.auth.models import User
 from utils.time_helpers import utc_now
@@ -36,6 +37,10 @@ class Tweet(models.Model):
             object_id=self.id,
         ).order_by('-created_at')
 
+    @property
+    def cached_user(self):
+        return MemcachedHelper.get_object_through_cache(User, self.user_id)
+
 
 class TweetPhoto(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
@@ -63,4 +68,6 @@ class TweetPhoto(models.Model):
 
     def __str__(self):
         return f'{self.tweet_id}: {self.file}'
+
+
 
