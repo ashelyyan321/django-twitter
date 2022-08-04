@@ -16,6 +16,7 @@ class Tweet(models.Model):
     )
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    #只有json的serializer方法可以保持毫秒级精度
 
     class Meta:
         index_together = (

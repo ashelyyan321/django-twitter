@@ -7,12 +7,13 @@ from newsfeeds.models import NewsFeed
 from likes.models import Like
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
-
+from utils.redis_client import RedisClient
 
 class TestCase(DjangoTestCase):
 
     def clear_cache(self):
         caches['testing'].clear()
+        RedisClient.clear()
 
     @property
     def anonymous_client(self):
