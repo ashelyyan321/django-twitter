@@ -5,6 +5,8 @@ from utils.time_helpers import utc_now
 from likes.models import Like
 from django.contrib.contenttypes.models import ContentType
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
+from tweets.listeners import push_tweet_to_cache
+from django.db.models.signals import post_save, pre_delete
 
 
 class Tweet(models.Model):
@@ -71,4 +73,5 @@ class TweetPhoto(models.Model):
         return f'{self.tweet_id}: {self.file}'
 
 
+post_save.connect(push_tweet_to_cache, sender=Tweet)
 

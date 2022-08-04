@@ -1,8 +1,10 @@
+from dateutil import parser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.pagination import BasePagination
 
 
+#不支持修改tweet，修改后无法知道其在redis list的位置
 class FriendshipPagination(PageNumberPagination):
     page_size = 20
     #https://.../api/friendship/1/followers/?page=3&size=10, client differences
@@ -29,7 +31,36 @@ class EndlessPagination(BasePagination):
     def to_html(self):
         pass
 
+    def paginate_ordered_list(self, reverse_ordered_list, request):
+        if 'created_at__gt' in request.query_params:
+            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            objects = []
+            for obj in reverse_ordered_list:
+                if obj.created_at > created_at__gt:
+                    objects.append(obj)
+                else:
+                    break
+            self.has_next_page = False
+            return objects
+
+        index = 0
+        if 'created_at__lt' in request.query_params:
+            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            for index, obj in enumerate(reverse_ordered_list):
+                if obj.created_at < created_at__lt:
+                    break
+            else:
+                    # 没找到任何满足条件的 objects, 返回空数组
+                    # 注意这个 else 对应的是 for，参见 python 的 for else 语法
+                reverse_ordered_list = []
+        self.has_next_page = len(reverse_ordered_list) > index + self.page_size
+        return reverse_ordered_list[index: index + self.page_size]
+        # memecached 可以一次拿多个key数据 cache.get_many([])
+
     def paginate_queryset(self, queryset, request, view=None):
+        if type(queryset) == list:
+            return self.paginate_ordered_list(queryset, request)
+
         if 'created_at__gt' in request.query_params:
             # created_at__gt 用于下拉刷新的时候加载最新的内容进来
             # 为了简便起见，下拉刷新不做翻页机制，直接加载所有更新的数据
