@@ -4,7 +4,7 @@ from tweets.models import Tweet
 from utils.memcached_helper import MemcachedHelper
 from utils.listeners import invalidate_object_cache
 from django.db.models.signals import post_save, pre_delete
-
+from newsfeeds.listeners import push_newsfeed_to_cache
 
 class NewsFeed(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -26,5 +26,8 @@ class NewsFeed(models.Model):
 
 post_save.connect(invalidate_object_cache, sender=Tweet)
 pre_delete.connect(invalidate_object_cache, sender=Tweet)
+
+#bulk created not trigger
+post_save.connect(push_newsfeed_to_cache, sender=NewsFeed)
 
 
