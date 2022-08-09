@@ -2,7 +2,7 @@ from dateutil import parser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.pagination import BasePagination
-
+from django.conf import settings
 
 #不支持修改tweet，修改后无法知道其在redis list的位置
 class FriendshipPagination(PageNumberPagination):
@@ -58,8 +58,8 @@ class EndlessPagination(BasePagination):
         # memecached 可以一次拿多个key数据 cache.get_many([])
 
     def paginate_queryset(self, queryset, request, view=None):
-        if type(queryset) == list:
-            return self.paginate_ordered_list(queryset, request)
+        #if type(queryset) == list:
+        #    return self.paginate_ordered_list(queryset, request)
 
         if 'created_at__gt' in request.query_params:
             # created_at__gt 用于下拉刷新的时候加载最新的内容进来
@@ -83,6 +83,17 @@ class EndlessPagination(BasePagination):
         queryset = queryset.order_by('-created_at')[:self.page_size + 1]
         self.has_next_page = len(queryset) > self.page_size
         return queryset[:self.page_size]
+
+    def paginate_cached_list(self, cached_list, request):
+        paginated_list = self.paginate_ordered_list(cached_list, request)
+        #上翻页
+        if 'created_at__gt' in request.query_params:
+            return paginated_list
+        if self.has_next_page:
+            return paginated_list
+        if len(cached_list) < settings.REDIS_LIST_LENGTH_LIMIT:
+            return paginated_list
+        return None
 
     def get_paginated_response(self, data):
         return Response({

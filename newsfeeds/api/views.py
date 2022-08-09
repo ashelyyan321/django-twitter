@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from newsfeeds.models import NewsFeed
 from newsfeeds.api.serializers import NewsFeedSerializer
 from utils.paginations import EndlessPagination
+from newsfeeds.services import NewsFeedService
 
 
 class NewsFeedViewSet(viewsets.GenericViewSet):
@@ -10,8 +11,13 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     pagination_class = EndlessPagination
 
     def list(self, request):
-        queryset = NewsFeed.objects.filter(user=self.request.user)
-        page = self.paginate_queryset(queryset)
+        #queryset = NewsFeed.objects.filter(user=self.request.user)
+        cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(request.user.id)
+        page = self.paginator.paginate_cached_list(cached_newsfeeds, request)
+        if page is None:
+            queryset = NewsFeed.objects.filter(user=request.user)
+            page = self.paginate_queryset(queryset)
+
         serializer = NewsFeedSerializer(
             page,
             context={'request': request},
