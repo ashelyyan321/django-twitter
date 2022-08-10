@@ -13,4 +13,3 @@ class LikeAdmin(admin.ModelAdmin):
     )
     list_filter = ('content_type',)
     date_hierarchy = 'created_at'
-

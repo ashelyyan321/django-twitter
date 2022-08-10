@@ -43,8 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'notifications',
-    'storages',
-    'boto3',
+
 
 
     # project apps
