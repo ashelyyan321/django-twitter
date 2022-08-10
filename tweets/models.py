@@ -20,6 +20,10 @@ class Tweet(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     #只有json的serializer方法可以保持毫秒级精度
 
+    #新增field一定设置null=True，否则default=0遍历整个表单会锁死
+    likes_count = models.IntegerField(default=0, null=True)
+    comments_count = models.IntegerField(default=0, null=True)
+
     class Meta:
         index_together = (
             ('user', 'created_at'),

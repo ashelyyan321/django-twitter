@@ -7,6 +7,7 @@ from likes.api.serializers import LikeSerializer
 from tweets.constants import TWEET_PHOTOS_UPLOAD_LIMIT
 from rest_framework.exceptions import ValidationError
 from tweets.services import TweetService
+from utils.redis_helper import RedisHelper
 
 
 class TweetSerializer(serializers.ModelSerializer):
@@ -35,9 +36,11 @@ class TweetSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return obj.like_set.count()
+        return RedisHelper.get_count(obj, 'likes_count')
 
     def get_comments_count(self, obj):
         return obj.comment_set.count()
+        return RedisHelper.get_count(obj, 'comments_count')
     #comment_set因为有foreign_key反查机制，自带
 
     def get_photo_urls(self, obj):
