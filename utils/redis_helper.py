@@ -55,6 +55,7 @@ class RedisHelper:
         conn = RedisClient.get_connection()
         key = cls.get_count_key(obj, attr)
         if not conn.exists(key):
+            obj.refresh_from_db()
             conn.set(key, getattr(obj, attr))
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
             return getattr(obj, attr)
@@ -65,6 +66,7 @@ class RedisHelper:
         conn = RedisClient.get_connection()
         key = cls.get_count_key(obj, attr)
         if not conn.exists(key):
+            obj.refresh_from_db()
             conn.set(key, getattr(obj, attr))
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
             return getattr(obj, attr)

@@ -35,11 +35,12 @@ class TweetSerializer(serializers.ModelSerializer):
         return LikeService.had_liked(self.context['request'].user, obj)
 
     def get_likes_count(self, obj):
-        return obj.like_set.count()
+        #source of truth  select count (*)
+        #return obj.like_set.count()
         return RedisHelper.get_count(obj, 'likes_count')
 
     def get_comments_count(self, obj):
-        return obj.comment_set.count()
+        #return obj.comment_set.count()
         return RedisHelper.get_count(obj, 'comments_count')
     #comment_set因为有foreign_key反查机制，自带
 
