@@ -10,6 +10,8 @@ from comments.api.serializers import (
 from utils.permissions import IsObjectOwner
 from utils.decorators import required_params
 from inbox.services import NotificationService
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -70,7 +72,8 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment.delete()
         return Response({'success': 'True'}, status=status.HTTP_200_OK)
 
-    @required_params(params=['tweet_id'])
+    @required_params(params=['tweet_id']) #过滤一部分400
+    @method_decorator(ratelimit(key='user', rate='3/min', method='GET', block=True))
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).prefetch_related('user').order_by('created_at')
