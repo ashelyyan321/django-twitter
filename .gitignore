@@ -2,7 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+hbase-2.4.13-bin.tar.gz
+hbase-2.4.13
+jdk-8u341-linux-x64.tar.gz
+thrift-0.16.0.tar.gz
+thrift-0.16.0
 # C extensions
 *.so
 .idea/
