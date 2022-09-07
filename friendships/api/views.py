@@ -10,64 +10,71 @@ from friendships.api.serializers import (
     FriendshipSerializerForCreate,
 )
 from django.contrib.auth.models import User
-from utils.paginations import FriendshipPagination
+from utils.paginations import FriendshipPagination, EndlessPagination
+from gatekeeper.models import GateKeeper
+from friendships.hbase_models import HBaseFollower,HBaseFollowing
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipSerializerForCreate
     queryset = User.objects.all()
-    pagination_class = FriendshipPagination
+    pagination_class = EndlessPagination
 
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
     def followers(self, request, pk):
-        friendships = Friendship.objects.filter(to_user_id=pk).order_by('-created_at')
-        page = self.paginate_queryset(friendships)
+        int(pk)
+        if GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            page = self.paginator.paginate_hbase(HBaseFollower, (pk,), request)
+        else:
+            friendships = Friendship.objects.filter(to_user_id=pk).order_by('-created_at')
+            page = self.paginate_queryset(friendships)
+
         serializer = FollowerSerializer(page, many=True, context={'request': request})
-        return self.get_paginated_response(serializer.data)
+        #print(serializer)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
     def followings(self, request, pk):
-        friendships = Friendship.objects.filter(from_user_id=pk).order_by('-created_at')
-        page = self.paginate_queryset(friendships)
+        int(pk)
+        if GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            page = self.paginator.paginate_hbase(HBaseFollowing, (pk,), request)
+        else:
+            friendships = Friendship.objects.filter(from_user_id=pk).order_by('-created_at')
+            page = self.paginate_queryset(friendships)
+
         serializer = FollowingSerializer(page, many=True, context={'request': request})
-        return self.get_paginated_response(serializer.data)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
     def follow(self, request, pk):
-        self.get_object()
+        to_follow_user = self.get_object()
+
+        if FriendshipService.has_followed(request.user.id, to_follow_user.id):
+            return Response({
+                'success': True,
+                'duplicate': True,
+            }, status=status.HTTP_201_CREATED)
         serializer = FriendshipSerializerForCreate(data={
             'from_user_id': request.user.id,
-            'to_user_id': pk,
+            'to_user_id': to_follow_user.id,
         })
         if not serializer.is_valid():
             return Response({
                 'success': False,
-                'message': 'Please check input',
                 'errors': serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
-        instance = serializer.save()
-        FriendshipService.invalidate_following_cache(request.user.id)
-        #NewsFeedService.inject_newsFeeds(request.user.id, pk)
-        return Response(
-            FollowingSerializer(instance, context={'request': request}).data,
-            status=status.HTTP_201_CREATED,
-        )
+        serializer.save()
+        return Response({'success': True}, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
     def unfollow(self, request, pk):
-        unfollowe_user = self.get_object()
-        if request.user.id == unfollowe_user.id:
+        # 注意 pk 的类型是 str，所以要做类型转换
+        if request.user.id == int(pk):
             return Response({
                 'success': False,
                 'message': 'You cannot unfollow yourself',
             }, status=status.HTTP_400_BAD_REQUEST)
-        #queryset会引发cascade删除，delete返回两个值，一个删了多少数据，一个具体每种类型删了多少
-        deleted, _ = Friendship.objects.filter(
-            from_user=request.user,
-            to_user=pk,
-        ).delete()
-        FriendshipService.invalidate_following_cache(request.user.id)
-        #NewsFeedService.remove_newsFeeds(request.user.id, pk)(push model)
+        deleted = FriendshipService.unfollow(request.user.id, int(pk))
         return Response({'success': True, 'deleted': deleted})
 
     #mysql，不要有join（尤其web类），cascade不要，drop foreign key constraint
